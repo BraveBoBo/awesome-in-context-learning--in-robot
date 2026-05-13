@@ -2,9 +2,9 @@ name: Paper subscription digest
 
 on:
   schedule:
-    # Mondays at 01:00 UTC (= 09:00 Asia/Shanghai).
+    # Daily at 01:00 UTC (= 09:00 Asia/Shanghai).
     # Note: scheduled workflows only run on the repo's default branch.
-    - cron: "0 1 * * 1"
+    - cron: "0 1 * * *"
   workflow_dispatch:
 
 permissions:
@@ -32,6 +32,15 @@ jobs:
 
       - name: Generate digest
         id: digest
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+          SMTP_TO: ${{ secrets.SMTP_TO }}
+          SMTP_USE_TLS: ${{ secrets.SMTP_USE_TLS }}
+          SMTP_USE_SSL: ${{ secrets.SMTP_USE_SSL }}
         run: python digest.py
 
       - name: Commit state and digest
@@ -45,5 +54,5 @@ jobs:
             echo "Nothing to commit."
             exit 0
           fi
-          git commit -m "chore(digest): weekly run $(date -u +%Y-%m-%d) (${{ steps.digest.outputs.new_count }} new)"
+          git commit -m "chore(digest): daily run $(date -u +%Y-%m-%d) (${{ steps.digest.outputs.new_count }} new)"
           git push

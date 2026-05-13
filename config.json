@@ -1,0 +1,9 @@
+{
+  "arxiv": {
+    "enabled": true,
+    "categories": ["cs.RO"],
+    "keywords": [],
+    "authors": [],
+    "max_results": 50
+  }
+}
