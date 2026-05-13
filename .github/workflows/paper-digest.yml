@@ -1,0 +1,49 @@
+name: Paper subscription digest
+
+on:
+  schedule:
+    # Mondays at 01:00 UTC (= 09:00 Asia/Shanghai).
+    # Note: scheduled workflows only run on the repo's default branch.
+    - cron: "0 1 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: paper-digest
+  cancel-in-progress: false
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate digest
+        id: digest
+        run: python digest.py
+
+      - name: Commit state and digest
+        if: steps.digest.outputs.new_count != '0' && steps.digest.outputs.new_count != ''
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add state.json digests/
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
+            exit 0
+          fi
+          git commit -m "chore(digest): weekly run $(date -u +%Y-%m-%d) (${{ steps.digest.outputs.new_count }} new)"
+          git push
