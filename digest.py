@@ -2,7 +2,9 @@
 
 Pulls ToC RSS feeds from IJRR, Science Robotics, T-RO, plus the arXiv
 ``cs.RO`` listing (optionally filtered by keywords/authors in
-``config.json``). New entries are deduped against ``state.json``, written
+``config.json``). An optional post-fetch topic ``filter`` (grouped
+keyword matching) is applied to every source. New entries are deduped
+against ``state.json``, written
 as a Markdown digest under ``digests/``, and emailed via SMTP when
 ``SMTP_HOST`` and ``SMTP_TO`` are set in the environment.
 
@@ -54,6 +56,12 @@ DEFAULT_CONFIG: dict = {
         "keywords": [],
         "authors": [],
         "max_results": 50,
+    },
+    # Post-fetch topic filter applied to every source (journals included).
+    # Each group is OR-matched internally; a paper must match ALL groups.
+    "filter": {
+        "enabled": False,
+        "groups": [],
     },
 }
 
@@ -159,8 +167,29 @@ def _clean_summary(text: str) -> str:
     return text
 
 
+def matches_filter(item: dict, filter_cfg: dict) -> bool:
+    """True if ``item`` matches the topic filter (case-insensitive substring).
+
+    Each group is OR-matched against the title/summary/authors text; the item
+    must match *every* group. Empty/disabled filters accept everything.
+    """
+    if not filter_cfg or not filter_cfg.get("enabled"):
+        return True
+    groups = filter_cfg.get("groups") or []
+    if not groups:
+        return True
+    text = " ".join(
+        str(item.get(field, "")) for field in ("title", "summary", "authors")
+    ).lower()
+    for group in groups:
+        terms = [str(t).lower() for t in (group or []) if t]
+        if terms and not any(term in text for term in terms):
+            return False
+    return True
+
+
 def fetch_feed(
-    name: str, url: str, seen: Iterable[str]
+    name: str, url: str, seen: Iterable[str], filter_cfg: dict | None = None
 ) -> tuple[list[dict], list[str]]:
     print(f"[fetch] {name}: {url}")
     parsed = feedparser.parse(url, agent=USER_AGENT)
@@ -170,25 +199,33 @@ def fetch_feed(
     seen_set = set(seen)
     new_items: list[dict] = []
     new_keys: list[str] = []
+    skipped = 0
     for entry in parsed.entries:
         key = entry_key(entry)
         if not key or key in seen_set:
             continue
+        item = {
+            "source": name,
+            "title": (entry.get("title") or "").strip(),
+            "link": (entry.get("link") or "").strip(),
+            "summary": _clean_summary(entry.get("summary") or ""),
+            "published": (
+                entry.get("published") or entry.get("updated") or ""
+            ).strip(),
+            "authors": _authors(entry),
+        }
+        # Non-matching entries are skipped without being marked seen, so they
+        # resurface automatically if the filter is later broadened.
+        if not matches_filter(item, filter_cfg or {}):
+            skipped += 1
+            continue
         seen_set.add(key)
         new_keys.append(key)
-        new_items.append(
-            {
-                "source": name,
-                "title": (entry.get("title") or "").strip(),
-                "link": (entry.get("link") or "").strip(),
-                "summary": _clean_summary(entry.get("summary") or ""),
-                "published": (
-                    entry.get("published") or entry.get("updated") or ""
-                ).strip(),
-                "authors": _authors(entry),
-            }
-        )
-    print(f"[fetch] {name}: {len(new_items)} new / {len(parsed.entries)} total")
+        new_items.append(item)
+    print(
+        f"[fetch] {name}: {len(new_items)} new / {len(parsed.entries)} total"
+        f" ({skipped} filtered)"
+    )
     return new_items, new_keys
 
 
@@ -339,11 +376,12 @@ def main() -> int:
 
     source_order = [name for name, _ in sources]
     all_new: list[dict] = []
+    filter_cfg = config.get("filter", {}) or {}
 
     for name, url in sources:
         seen = state.get(name, [])
         try:
-            new_items, new_keys = fetch_feed(name, url, seen)
+            new_items, new_keys = fetch_feed(name, url, seen, filter_cfg)
         except Exception as exc:  # noqa: BLE001
             print(f"[error] {name}: {exc!r}", file=sys.stderr)
             continue
