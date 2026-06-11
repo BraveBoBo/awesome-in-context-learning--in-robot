@@ -7,8 +7,12 @@ Actions; safe to re-run locally.
 
 ## Topics
 
-This instance is focused on **VLA-memory** and **force-VLA** research, i.e.
-Vision-Language-Action models that involve memory or force/tactile feedback.
+This instance tracks two topics, and keeps a paper that matches **either** one:
+
+- **VLA-memory / force-VLA** — Vision-Language-Action models that involve
+  memory or force/tactile feedback.
+- **In-context learning** — robot-learning papers on in-context /
+  in-context imitation learning.
 
 ## Sources
 
@@ -33,25 +37,41 @@ Vision-Language-Action models that involve memory or force/tactile feedback.
 ## Topic filter
 
 Configured in `config.json`. The filter uses **grouped substring matching**
-(case-insensitive, over title + summary + authors):
+(case-insensitive, over title + summary + authors). It holds one or more
+**topics**, each of which is a set of groups:
 
 ```json
 "filter": {
   "enabled": true,
-  "groups": [
-    ["vla", "vision-language-action", "vision language action"],
-    ["memory", "force", "tactile", "haptic"]
+  "topics": [
+    {
+      "name": "vla-memory-force",
+      "groups": [
+        ["vla", "vision-language-action", "vision language action"],
+        ["memory", "force", "tactile", "haptic"]
+      ]
+    },
+    {
+      "name": "in-context-learning",
+      "groups": [
+        ["in-context learning", "in context learning", "in-context imitation"]
+      ]
+    }
   ]
 }
 ```
 
-- **Within a group → OR**, **across groups → AND.**
-- A paper is kept only if it matches **at least one term in every group** —
-  here, a VLA term **and** a memory/force term. This is what keeps the journal
-  feeds from flooding the digest with every paper that merely says "force".
+- **Within a group → OR**, **across groups (within a topic) → AND**, **across
+  topics → OR.**
+- A paper is kept if it satisfies **any** topic. A topic is satisfied when the
+  paper matches **at least one term in every one of its groups** — e.g. a VLA
+  term **and** a memory/force term, *or* any in-context-learning term. The
+  per-topic AND is what keeps the journal feeds from flooding the digest with
+  every paper that merely says "force".
 - Non-matching entries are **not** recorded in `state.json`, so if you later
-  broaden the groups, previously-skipped papers resurface automatically.
-- Set `"enabled": false` (or empty `groups`) to pass everything through.
+  broaden a topic, previously-skipped papers resurface automatically.
+- A legacy single-topic `"groups": [...]` (without `topics`) is still accepted.
+- Set `"enabled": false` (or no topics/groups) to pass everything through.
 
 arXiv additionally pre-filters server-side via `arxiv.keywords` to limit how
 many results are fetched before the local filter runs.
@@ -63,13 +83,16 @@ many results are fetched before the local filter runs.
   "arxiv": {
     "enabled": true,
     "categories": ["cs.RO"],
-    "keywords": ["VLA memory", "force VLA", "..."],
+    "keywords": ["VLA memory", "force VLA", "in-context learning", "..."],
     "authors": [],
-    "max_results": 50
+    "max_results": 75
   },
   "filter": {
     "enabled": true,
-    "groups": [["vla", "..."], ["memory", "force", "..."]]
+    "topics": [
+      {"name": "vla-memory-force", "groups": [["vla", "..."], ["memory", "force", "..."]]},
+      {"name": "in-context-learning", "groups": [["in-context learning", "..."]]}
+    ]
   }
 }
 ```

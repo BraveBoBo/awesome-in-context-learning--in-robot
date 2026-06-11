@@ -8,16 +8,30 @@
       "vision-language-action memory",
       "force VLA",
       "force vision-language-action",
-      "vision-language-action force"
+      "vision-language-action force",
+      "in-context learning",
+      "in-context imitation learning",
+      "in-context reinforcement learning"
     ],
     "authors": [],
-    "max_results": 50
+    "max_results": 75
   },
   "filter": {
     "enabled": true,
-    "groups": [
-      ["vla", "vision-language-action", "vision language action"],
-      ["memory", "force", "tactile", "haptic"]
+    "topics": [
+      {
+        "name": "vla-memory-force",
+        "groups": [
+          ["vla", "vision-language-action", "vision language action"],
+          ["memory", "force", "tactile", "haptic"]
+        ]
+      },
+      {
+        "name": "in-context-learning",
+        "groups": [
+          ["in-context learning", "in context learning", "in-context-learning", "in-context imitation"]
+        ]
+      }
     ]
   }
 }
