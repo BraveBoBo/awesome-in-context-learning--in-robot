@@ -294,6 +294,41 @@ def render_markdown(items: list[dict], when: datetime, order: list[str]) -> str:
     return "\n".join(lines)
 
 
+def _short_authors(authors: str, max_n: int = 3) -> str:
+    """First few author names, with 'et al.' when the list is longer."""
+    names = [a.strip() for a in (authors or "").split(",") if a.strip()]
+    if not names:
+        return ""
+    if len(names) <= max_n:
+        return ", ".join(names)
+    return ", ".join(names[:max_n]) + " et al."
+
+
+def render_compact(items: list[dict], when: datetime, order: list[str]) -> str:
+    """A condensed digest for the README: one bullet per paper, no abstracts.
+
+    Empty sources are omitted to keep the section tight.
+    """
+    lines = [f"# Paper digest — {when.strftime('%Y-%m-%d')} · {len(items)} new", ""]
+    by_source: dict[str, list[dict]] = {}
+    for item in items:
+        by_source.setdefault(item["source"], []).append(item)
+    for source in order:
+        bucket = by_source.get(source, [])
+        if not bucket:
+            continue
+        lines.append(f"## {source} ({len(bucket)})")
+        for item in bucket:
+            title = item["title"] or "(untitled)"
+            head = f"[{title}]({item['link']})" if item["link"] else title
+            authors = _short_authors(item.get("authors", ""))
+            lines.append(f"- {head}" + (f" — *{authors}*" if authors else ""))
+        lines.append("")
+    if len(lines) <= 2:
+        lines.append("_No new entries._")
+    return "\n".join(lines).rstrip() + "\n"
+
+
 _HEADING_RE = re.compile(r"^(#{1,6})(\s)")
 
 
@@ -480,7 +515,7 @@ def main() -> int:
     write_github_output("digest_path", str(digest_path.relative_to(ROOT)))
     print(f"[done] wrote {digest_path} ({new_count} new papers)")
 
-    if update_readme(md_body):
+    if update_readme(render_compact(all_new, now, source_order)):
         print("[readme] refreshed Latest digest section")
 
     try:
