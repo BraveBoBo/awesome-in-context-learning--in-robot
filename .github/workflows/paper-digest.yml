@@ -49,7 +49,7 @@ jobs:
           set -euo pipefail
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add state.json digests/
+          git add state.json digests/ README.md
           if git diff --cached --quiet; then
             echo "Nothing to commit."
             exit 0
