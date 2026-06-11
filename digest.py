@@ -167,25 +167,51 @@ def _clean_summary(text: str) -> str:
     return text
 
 
-def matches_filter(item: dict, filter_cfg: dict) -> bool:
-    """True if ``item`` matches the topic filter (case-insensitive substring).
-
-    Each group is OR-matched against the title/summary/authors text; the item
-    must match *every* group. Empty/disabled filters accept everything.
-    """
-    if not filter_cfg or not filter_cfg.get("enabled"):
-        return True
-    groups = filter_cfg.get("groups") or []
-    if not groups:
-        return True
-    text = " ".join(
-        str(item.get(field, "")) for field in ("title", "summary", "authors")
-    ).lower()
+def _matches_groups(text: str, groups: list) -> bool:
+    """True if ``text`` satisfies every group (OR within a group, AND across)."""
     for group in groups:
         terms = [str(t).lower() for t in (group or []) if t]
         if terms and not any(term in text for term in terms):
             return False
     return True
+
+
+def matches_filter(item: dict, filter_cfg: dict) -> bool:
+    """True if ``item`` matches the topic filter (case-insensitive substring).
+
+    The filter holds one or more *topics*. Within a topic each group is
+    OR-matched against the title/summary/authors text and the item must satisfy
+    *every* group (AND). A paper is kept if it matches **any** topic (OR across
+    topics). Empty/disabled filters — and topics with no groups — accept
+    everything.
+
+    Two config shapes are accepted:
+
+    * ``{"topics": [{"name": ..., "groups": [...]}, ...]}`` — multi-topic.
+    * ``{"groups": [...]}`` — legacy single topic (still supported).
+    """
+    if not filter_cfg or not filter_cfg.get("enabled"):
+        return True
+
+    topics = filter_cfg.get("topics")
+    if not topics:
+        groups = filter_cfg.get("groups") or []
+        if not groups:
+            return True
+        topics = [{"groups": groups}]
+
+    text = " ".join(
+        str(item.get(field, "")) for field in ("title", "summary", "authors")
+    ).lower()
+
+    for topic in topics:
+        groups = (topic.get("groups") if isinstance(topic, dict) else topic) or []
+        if not groups:
+            # A topic with no groups matches everything.
+            return True
+        if _matches_groups(text, groups):
+            return True
+    return False
 
 
 def fetch_feed(
