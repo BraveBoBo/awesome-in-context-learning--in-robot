@@ -12,59 +12,10 @@ Actions; safe to re-run locally.
 
 > Most recent run. Full history in [`digests/`](digests/).
 
-### Paper digest — 2026-06-11 · 50 new
+### Paper digest — 2026-06-15 · 1 new
 
-#### arXiv cs.RO (50)
-- [SynthICL: Scalable In-context Imitation Learning with Synthetic Data](https://arxiv.org/abs/2606.08154v1) — *Cheng Qian, Ruomeng Fan, Yifei Ren et al.*
-- [A Machine-to-Machine Knowledge-Guided LLM Agent for Generalizable Radiotherapy Treatment Planning](https://arxiv.org/abs/2606.00922v1) — *Md Mainul Abrar, Xun Jia, Yujie Chi*
-- [Decompose and Recompose: Reasoning New Skills from Existing Abilities for Cross-Task Robotic Manipulation](https://arxiv.org/abs/2605.01448v1) — *Xitie Zhang, Aming Wu, Yahong Han*
-- [MEMOR-E: In-Context and Fine-Tuned LLM Personalization for Alzheimer's Assistive Robotics](https://arxiv.org/abs/2605.23941v1) — *Maissa Abir Smaili, Eren Sadikoglu, Ransalu Senanayake*
-- [Bimanual Robot Manipulation via Multi-Agent In-Context Learning](https://arxiv.org/abs/2604.20348v2) — *Alessio Palma, Indro Spinelli, Vignesh Prasad et al.*
-- [A Hierarchical Spatiotemporal Action Tokenizer for In-Context Imitation Learning in Robotics](https://arxiv.org/abs/2604.15215v3) — *Fawad Javed Fateh, Ali Shah Ali, Murad Popattia et al.*
-- [Vintix II: Decision Pre-Trained Transformer is a Scalable In-Context Reinforcement Learner](https://arxiv.org/abs/2604.05112v1) — *Andrei Polubarov, Lyubaykin Nikita, Alexander Derevyagin et al.*
-- [LongTail Driving Scenarios with Reasoning Traces: The KITScenes LongTail Dataset](https://arxiv.org/abs/2603.23607v2) — *Royden Wagner, Omer Sahin Tas, Jaime Villa et al.*
-- [Confusion-Aware In-Context-Learning for Vision-Language Models in Robotic Manipulation](https://arxiv.org/abs/2603.15134v1) — *Yayun He, Zuheng Kang, Botao Zhao et al.*
-- [SAIL: Test-Time Scaling for In-Context Imitation Learning with VLM](https://arxiv.org/abs/2603.08269v1) — *Makoto Sato, Yusuke Iwasawa, Yujin Tang et al.*
-- [ICLR: In-Context Imitation Learning with Visual Reasoning](https://arxiv.org/abs/2603.07530v1) — *Toan Nguyen, Weiduo Yuan, Songlin Wei et al.*
-- [Agentic Self-Evolutionary Replanning for Embodied Navigation](https://arxiv.org/abs/2603.02772v1) — *Guoliang Li, Ruihua Han, Chengyang Li et al.*
-- [MemCtrl: Using MLLMs as Active Memory Controllers on Embodied Agents](https://arxiv.org/abs/2601.20831v1) — *Vishnu Sashank Dorbala, Dinesh Manocha*
-- [From Prompts to Pavement: LMMs-based Agentic Behavior-Tree Generation Framework for Autonomous Vehicles](https://arxiv.org/abs/2601.12358v1) — *Omar Y. Goba, Ahmed Y. Gado, Catherine M. Elias et al.*
-- [An Embodied Companion for Visual Storytelling](https://arxiv.org/abs/2603.05511v1) — *Patrick Tresset, Markus Wulfmeier*
-- [RANGER: A Monocular Zero-Shot Semantic Navigation Framework through Visual Contextual Adaptation](https://arxiv.org/abs/2512.24212v3) — *Ming-Ming Yu, Yi Chen, Börje F. Karlsson et al.*
-- [Prompt-Driven Domain Adaptation for End-to-End Autonomous Driving via In-Context RL](https://arxiv.org/abs/2511.12755v1) — *Aleesha Khurram, Amir Moeini, Shangtong Zhang et al.*
-- [OmniVIC: A Self-Improving Variable Impedance Controller with Vision-Language In-Context Learning for Safe Robotic Manipulation](https://arxiv.org/abs/2510.17150v2) — *Heng Zhang, Wei-Hsing Huang, Gokhan Solak et al.*
-- [DynaMIC: Dynamic Multimodal In-Context Learning Enabled Embodied Robot Counterfactual Resistance Ability](https://arxiv.org/abs/2509.24413v1) — *Tianqiang Yan, Ziqiao Lin, Sicheng Wang et al.*
-- [RoboSSM: Scalable In-context Imitation Learning via State-Space Models](https://arxiv.org/abs/2509.19658v1) — *Youngju Yoo, Jiaheng Hu, Yifeng Zhu et al.*
-- [MimicDroid: In-Context Learning for Humanoid Robot Manipulation from Human Play Videos](https://arxiv.org/abs/2509.09769v1) — *Rutav Shah, Shuijing Liu, Qi Wang et al.*
-- [In-Context Iterative Policy Improvement for Dynamic Manipulation](https://arxiv.org/abs/2508.15021v1) — *Mark Van der Merwe, Devesh Jha*
-- [In-situ Value-aligned Human-Robot Interactions with Physical Constraints](https://arxiv.org/abs/2508.07606v2) — *Hongtao Li, Ziyuan Jiao, Xiaofeng Liu et al.*
-- [Triple-S: A Collaborative Multi-LLM Framework for Solving Long-Horizon Implicative Tasks in Robotics](https://arxiv.org/abs/2508.07421v1) — *Zixi Jia, Hongbin Gao, Fashe Li et al.*
-- [RICL: Adding In-Context Adaptability to Pre-Trained Vision-Language-Action Models](https://arxiv.org/abs/2508.02062v1) — *Kaustubh Sridhar, Souradeep Dutta, Dinesh Jayaraman et al.*
-- [DEMONSTRATE: Zero-shot Language to Robotic Control via Multi-task Demonstration Learning](https://arxiv.org/abs/2507.12855v1) — *Rahel Rickenbach, Bruce Lee, René Zurbrügg et al.*
-- [Prompt Informed Reinforcement Learning for Visual Coverage Path Planning](https://arxiv.org/abs/2507.10284v1) — *Venkat Margapuri*
-- [Behavioral Exploration: Learning to Explore via In-Context Adaptation](https://arxiv.org/abs/2507.09041v1) — *Andrew Wagenmaker, Zhiyuan Zhou, Sergey Levine*
-- [Evolving Prompts In-Context: An Open-ended, Self-replicating Perspective](https://arxiv.org/abs/2506.17930v1) — *Jianyu Wang, Zhiqiang Hu, Lidong Bing*
-- [Robust Instant Policy: Leveraging Student's t-Regression Model for Robust In-context Imitation Learning of Robot Manipulation](https://arxiv.org/abs/2506.15157v1) — *Hanbit Oh, Andrea M. Salcedo-Vázquez, Ixchel G. Ramirez-Alpizar et al.*
-- [Hierarchical Intention-Aware Expressive Motion Generation for Humanoid Robots](https://arxiv.org/abs/2506.01563v4) — *Lingfan Bao, Yan Pan, Tianhu Peng et al.*
-- [Enhancing Speech Instruction Understanding and Disambiguation in Robotics via Speech Prosody](https://arxiv.org/abs/2506.02057v1) — *David Sasu, Kweku Andoh Yamoah, Benedict Quartey et al.*
-- [Towards Predicting Any Human Trajectory In Context](https://arxiv.org/abs/2506.00871v3) — *Ryo Fujii, Hideo Saito, Ryo Hachiuma*
-- [LLM-Empowered Embodied Agent for Memory-Augmented Task Planning in Household Robotics](https://arxiv.org/abs/2504.21716v1) — *Marc Glocker, Peter Hönig, Matthias Hirschmanner et al.*
-- [LLM-Enabled In-Context Learning for Data Collection Scheduling in UAV-assisted Sensor Networks](https://arxiv.org/abs/2504.14556v2) — *Yousef Emami, Hao Zhou, SeyedSina Nabavirazani et al.*
-- [In-Context Learning for Zero-Shot Speed Estimation of BLDC motors](https://arxiv.org/abs/2504.00673v1) — *Alessandro Colombo, Riccardo Busetto, Valentina Breschi et al.*
-- [LLM+MAP: Bimanual Robot Task Planning using Large Language Models and Planning Domain Definition Language](https://arxiv.org/abs/2503.17309v1) — *Kun Chu, Xufeng Zhao, Cornelius Weber et al.*
-- [Mitigating Cross-Modal Distraction and Ensuring Geometric Feasibility via Affordance-Guided and Self-Consistent MLLMs for Task Planning in Instruction-Following Manipulation](https://arxiv.org/abs/2503.13055v2) — *Yu-Hong Shen, Chuan-Yu Wu, Yi-Ru Yang et al.*
-- [FlowPlan: Zero-Shot Task Planning with LLM Flow Engineering for Robotic Instruction Following](https://arxiv.org/abs/2503.02698v1) — *Zijun Lin, Chao Tang, Hanjing Ye et al.*
-- [Action Tokenizer Matters in In-Context Imitation Learning](https://arxiv.org/abs/2503.01206v3) — *An Dinh Vuong, Minh Nhat Vu, Dong An et al.*
-- [Vintix: Action Model via In-Context Reinforcement Learning](https://arxiv.org/abs/2501.19400v2) — *Andrey Polubarov, Nikita Lyubaykin, Alexander Derevyagin et al.*
-- [Generating Traffic Scenarios via In-Context Learning to Learn Better Motion Planner](https://arxiv.org/abs/2412.18086v2) — *Aizierjiang Aiersilan*
-- [Embodied CoT Distillation From LLM To Off-the-shelf Agents](https://arxiv.org/abs/2412.11499v1) — *Wonje Choi, Woo Kyung Kim, Minjong Yoo et al.*
-- [Instant Policy: In-Context Imitation Learning via Graph Diffusion](https://arxiv.org/abs/2411.12633v2) — *Vitalis Vosylius, Edward Johns*
-- [Select2Plan: Training-Free ICL-Based Planning through VQA and Memory Retrieval](https://arxiv.org/abs/2411.04006v1) — *Davide Buoso, Luke Robinson, Giuseppe Averta et al.*
-- [Transformer-Based Fault-Tolerant Control for Fixed-Wing UAVs Using Knowledge Distillation and In-Context Adaptation](https://arxiv.org/abs/2411.02975v2) — *Francisco Giral, Ignacio Gómez, Ricardo Vinuesa et al.*
-- [EMOTION: Expressive Motion Sequence Generation for Humanoid Robots with In-Context Learning](https://arxiv.org/abs/2410.23234v1) — *Peide Huang, Yuhan Hu, Nataliya Nechyporenko et al.*
-- [Dynamics as Prompts: In-Context Learning for Sim-to-Real System Identifications](https://arxiv.org/abs/2410.20357v2) — *Xilun Zhang, Shiqi Liu, Peide Huang et al.*
-- [CoT-TL: Low-Resource Temporal Knowledge Representation of Planning Instructions Using Chain-of-Thought Reasoning](https://arxiv.org/abs/2410.16207v2) — *Kumar Manas, Stefan Zwicklbauer, Adrian Paschke*
-- [In-Context Learning Enables Robot Action Prediction in LLMs](https://arxiv.org/abs/2410.12782v2) — *Yida Yin, Zekai Wang, Yuvan Sharma et al.*
+#### arXiv cs.RO (1)
+- [PhysVLA: Towards Physically-Grounded VLA for Embodied Robotic Manipulation](https://arxiv.org/abs/2606.13886v1) — *Namai Chandra, Shriram Damodaran, Lin Wang*
 
 
 <!-- DIGEST:END -->
