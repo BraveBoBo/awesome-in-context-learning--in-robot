@@ -433,15 +433,17 @@ def _topic_order(filter_cfg: dict) -> list[dict]:
 def render_compact(items: list[dict], when: datetime, order: list[dict]) -> str:
     """A condensed digest for the README: one bullet per paper, no abstracts.
 
-    Empty topics are omitted to keep the section tight.
+    All topic sections are shown in order (empty ones included), so the README
+    always lists every topic.
     """
     lines: list[str] = []
     for header, bucket in _sections(items, order):
-        if not bucket:
-            continue
         lines.append(f"## {header} ({len(bucket)})")
-        for item in bucket:
-            lines.append(_entry_line(item))
+        if not bucket:
+            lines.append("_No new entries._")
+        else:
+            for item in bucket:
+                lines.append(_entry_line(item))
         lines.append("")
     if not lines:
         lines.append("_No new entries._")
