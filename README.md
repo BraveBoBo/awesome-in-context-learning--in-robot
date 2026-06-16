@@ -21,18 +21,3 @@ The digest is grouped by topic, in this order:
 - 🧠 **Memory-VLA** — Vision-Language-Action models that involve memory.
 
 A paper that fits more than one topic is listed under each.
-
-## Sources
-
-| Source | Type | Filtered |
-|--------|------|----------|
-| IJRR | journal ToC RSS | yes (post-fetch) |
-| Science Robotics | journal ToC RSS | yes (post-fetch) |
-| T-RO | journal ToC RSS | yes (post-fetch) |
-| arXiv `cs.RO` | search API | yes (server-side keywords + post-fetch) |
-
-## Schedule
-
-`.github/workflows/paper-digest.yml` runs daily at **01:00 UTC** (09:00
-Asia/Shanghai) and on manual `workflow_dispatch`. Scheduled runs only fire on
-the repository's default branch.
