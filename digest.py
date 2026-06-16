@@ -407,7 +407,7 @@ def _sections(items: list[dict], order: list[dict]) -> list[tuple[str, list[dict
         for t in order
     ]
     if uncategorized:
-        out.append(("Uncategorized", uncategorized))
+        out.append(("Other", uncategorized))
     return out
 
 
@@ -415,7 +415,7 @@ def _topic_order(filter_cfg: dict) -> list[dict]:
     """Display order of topics ``[{name, title, emoji}, ...]`` from the config.
 
     Empty when the filter is disabled / has no named topics; rendering then
-    falls back to the single ``Uncategorized`` catch-all.
+    falls back to the single ``Other`` catch-all.
     """
     order: list[dict] = []
     for topic in (filter_cfg or {}).get("topics") or []:

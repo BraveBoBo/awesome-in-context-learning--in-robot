@@ -10,7 +10,7 @@ _No new entries._
 #### 🧠 Memory-VLA (0)
 _No new entries._
 
-#### Uncategorized (1)
+#### Other (1)
 - **PhysVLA**, PhysVLA: Towards Physically-Grounded VLA for Embodied Robotic Manipulation. [![arXiv](https://img.shields.io/badge/arXiv-2606.13886-b31b1b.svg)](https://arxiv.org/abs/2606.13886) — *Namai Chandra, Shriram Damodaran, Lin Wang*
 
 
