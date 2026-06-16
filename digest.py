@@ -435,7 +435,7 @@ def render_compact(items: list[dict], when: datetime, order: list[dict]) -> str:
 
     Empty topics are omitted to keep the section tight.
     """
-    lines = [f"# Paper digest — {when.strftime('%Y-%m-%d')} · {len(items)} new", ""]
+    lines: list[str] = []
     for header, bucket in _sections(items, order):
         if not bucket:
             continue
@@ -443,7 +443,7 @@ def render_compact(items: list[dict], when: datetime, order: list[dict]) -> str:
         for item in bucket:
             lines.append(_entry_line(item))
         lines.append("")
-    if len(lines) <= 2:
+    if not lines:
         lines.append("_No new entries._")
     return "\n".join(lines).rstrip() + "\n"
 
