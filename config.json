@@ -20,16 +20,29 @@
     "enabled": true,
     "topics": [
       {
-        "name": "vla-memory-force",
+        "name": "in-context-learning",
+        "title": "In-Context Learning",
+        "emoji": "📚",
         "groups": [
-          ["vla", "vision-language-action", "vision language action"],
-          ["memory", "force", "tactile", "haptic"]
+          ["in-context learning", "in context learning", "in-context-learning", "in-context imitation"]
         ]
       },
       {
-        "name": "in-context-learning",
+        "name": "force-vla",
+        "title": "Force-VLA",
+        "emoji": "✋",
         "groups": [
-          ["in-context learning", "in context learning", "in-context-learning", "in-context imitation"]
+          ["vla", "vision-language-action", "vision language action"],
+          ["force", "tactile", "haptic"]
+        ]
+      },
+      {
+        "name": "memory-vla",
+        "title": "Memory-VLA",
+        "emoji": "🧠",
+        "groups": [
+          ["vla", "vision-language-action", "vision language action"],
+          ["memory"]
         ]
       }
     ]

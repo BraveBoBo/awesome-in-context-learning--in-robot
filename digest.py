@@ -180,14 +180,18 @@ def _matches_groups(text: str, groups: list) -> bool:
     return True
 
 
-def matches_filter(item: dict, filter_cfg: dict) -> bool:
-    """True if ``item`` matches the topic filter (case-insensitive substring).
+ACCEPT_ALL = "*"  # sentinel topic: filter disabled / a topic with no groups.
+
+
+def classify_topics(item: dict, filter_cfg: dict) -> list[str]:
+    """Topic names whose groups all match ``item`` (case-insensitive substring).
 
     The filter holds one or more *topics*. Within a topic each group is
     OR-matched against the title/summary/authors text and the item must satisfy
-    *every* group (AND). A paper is kept if it matches **any** topic (OR across
-    topics). Empty/disabled filters — and topics with no groups — accept
-    everything.
+    *every* group (AND). Returns the ``name`` of **every** topic the item
+    satisfies (OR across topics), so each paper can be rendered under its
+    topic section. Empty/disabled filters — and topics with no groups — accept
+    everything and return ``[ACCEPT_ALL]``.
 
     Two config shapes are accepted:
 
@@ -195,27 +199,37 @@ def matches_filter(item: dict, filter_cfg: dict) -> bool:
     * ``{"groups": [...]}`` — legacy single topic (still supported).
     """
     if not filter_cfg or not filter_cfg.get("enabled"):
-        return True
+        return [ACCEPT_ALL]
 
     topics = filter_cfg.get("topics")
     if not topics:
         groups = filter_cfg.get("groups") or []
         if not groups:
-            return True
-        topics = [{"groups": groups}]
+            return [ACCEPT_ALL]
+        topics = [{"name": ACCEPT_ALL, "groups": groups}]
 
     text = " ".join(
         str(item.get(field, "")) for field in ("title", "summary", "authors")
     ).lower()
 
+    matched: list[str] = []
     for topic in topics:
-        groups = (topic.get("groups") if isinstance(topic, dict) else topic) or []
+        if isinstance(topic, dict):
+            groups = topic.get("groups") or []
+            name = topic.get("name") or ACCEPT_ALL
+        else:
+            groups, name = topic or [], ACCEPT_ALL
         if not groups:
             # A topic with no groups matches everything.
-            return True
+            return [ACCEPT_ALL]
         if _matches_groups(text, groups):
-            return True
-    return False
+            matched.append(name)
+    return matched
+
+
+def matches_filter(item: dict, filter_cfg: dict) -> bool:
+    """True if ``item`` matches any topic (see :func:`classify_topics`)."""
+    return bool(classify_topics(item, filter_cfg))
 
 
 def fetch_feed(
@@ -246,9 +260,11 @@ def fetch_feed(
         }
         # Non-matching entries are skipped without being marked seen, so they
         # resurface automatically if the filter is later broadened.
-        if not matches_filter(item, filter_cfg or {}):
+        topics = classify_topics(item, filter_cfg or {})
+        if not topics:
             skipped += 1
             continue
+        item["topics"] = topics
         seen_set.add(key)
         new_keys.append(key)
         new_items.append(item)
@@ -259,37 +275,25 @@ def fetch_feed(
     return new_items, new_keys
 
 
-def render_markdown(items: list[dict], when: datetime, order: list[str]) -> str:
+def render_markdown(items: list[dict], when: datetime, order: list[dict]) -> str:
     lines = [
         f"# Paper digest — {when.strftime('%Y-%m-%d')}",
         "",
         f"Generated at {when.isoformat()} ({len(items)} new papers).",
         "",
     ]
-    by_source: dict[str, list[dict]] = {}
-    for item in items:
-        by_source.setdefault(item["source"], []).append(item)
-    for source in order:
-        bucket = by_source.get(source, [])
-        lines.append(f"## {source} ({len(bucket)})")
+    for header, bucket in _sections(items, order):
+        lines.append(f"## {header} ({len(bucket)})")
         lines.append("")
         if not bucket:
             lines.append("_No new entries._")
             lines.append("")
             continue
         for item in bucket:
-            title = item["title"] or "(untitled)"
-            if item["link"]:
-                lines.append(f"### [{title}]({item['link']})")
-            else:
-                lines.append(f"### {title}")
-            if item["authors"]:
-                lines.append(f"*{item['authors']}*")
-            if item["published"]:
-                lines.append(f"_{item['published']}_")
-            if item["summary"]:
+            lines.append(_entry_line(item))
+            if item.get("summary"):
                 lines.append("")
-                lines.append(item["summary"])
+                lines.append(f"  {item['summary']}")
             lines.append("")
     return "\n".join(lines)
 
@@ -304,25 +308,140 @@ def _short_authors(authors: str, max_n: int = 3) -> str:
     return ", ".join(names[:max_n]) + " et al."
 
 
-def render_compact(items: list[dict], when: datetime, order: list[str]) -> str:
+# --- awesome-list entry rendering (model name + badges, grouped by topic) ----
+
+_ARXIV_ID_RE = re.compile(r"arxiv\.org/abs/(\d{4}\.\d{4,5})")
+_WEBSITE_RE = re.compile(
+    r"https?://(?:github\.com|huggingface\.co|sites\.google\.com|"
+    r"[\w.-]+\.github\.io)/\S+"
+)
+
+
+def _arxiv_id(link: str) -> str | None:
+    """Version-stripped arXiv id in ``link``, or ``None``."""
+    m = _ARXIV_ID_RE.search(link or "")
+    return m.group(1) if m else None
+
+
+def _model_name(title: str) -> str | None:
+    """Leading ``Name:`` segment of a title, used as the model/method name.
+
+    Matches the awesome-list convention (``RT-2``, ``SmolVLA``, ``Qwen-VLA``):
+    only the short pre-colon part of ``Name: Full title`` qualifies.
+    """
+    head, sep, _ = (title or "").partition(":")
+    head = head.strip()
+    if not sep or not head or len(head.split()) > 5:
+        return None
+    return head
+
+
+def _website(summary: str) -> str | None:
+    """First project/code URL found in ``summary`` (best-effort)."""
+    m = _WEBSITE_RE.search(summary or "")
+    return m.group(0).rstrip(".,);") if m else None
+
+
+def _badges(item: dict) -> str:
+    """Markdown shields for an item: arXiv (or Paper) + optional Website."""
+    parts: list[str] = []
+    aid = _arxiv_id(item.get("link", ""))
+    if aid:
+        parts.append(
+            f"[![arXiv](https://img.shields.io/badge/arXiv-{aid}-b31b1b.svg)]"
+            f"(https://arxiv.org/abs/{aid})"
+        )
+    elif item.get("link"):
+        parts.append(
+            "[![Paper](https://img.shields.io/badge/Paper-Link-blue)]"
+            f"({item['link']})"
+        )
+    site = _website(item.get("summary", ""))
+    if site:
+        parts.append(
+            f"[![Website](https://img.shields.io/badge/Website-Link-blue)]({site})"
+        )
+    return " ".join(parts)
+
+
+def _entry_line(item: dict) -> str:
+    """One awesome-list bullet: ``- **Model**, Title. <badges> — *authors*``."""
+    title = item.get("title") or "(untitled)"
+    model = _model_name(title)
+    head = f"**{model}**, {title}." if model else f"**{title}**."
+    line = f"- {head}"
+    badges = _badges(item)
+    if badges:
+        line += f" {badges}"
+    authors = _short_authors(item.get("authors", ""))
+    if authors:
+        line += f" — *{authors}*"
+    return line
+
+
+def _by_topic(
+    items: list[dict], order: list[dict]
+) -> tuple[dict[str, list[dict]], list[dict]]:
+    """Bucket items by topic name (declared order); cross-topic papers repeat.
+
+    Returns ``(buckets, uncategorized)``; the latter holds items whose topics
+    are not in ``order`` (only possible when the filter is disabled).
+    """
+    buckets: dict[str, list[dict]] = {t["name"]: [] for t in order}
+    uncategorized: list[dict] = []
+    for item in items:
+        names = [n for n in item.get("topics", []) if n in buckets]
+        if names:
+            for n in names:
+                buckets[n].append(item)
+        else:
+            uncategorized.append(item)
+    return buckets, uncategorized
+
+
+def _sections(items: list[dict], order: list[dict]) -> list[tuple[str, list[dict]]]:
+    """``[(header, bucket), ...]`` in display order, with a trailing catch-all."""
+    buckets, uncategorized = _by_topic(items, order)
+    out = [
+        (f"{t.get('emoji', '')} {t.get('title') or t['name']}".strip(), buckets[t["name"]])
+        for t in order
+    ]
+    if uncategorized:
+        out.append(("Uncategorized", uncategorized))
+    return out
+
+
+def _topic_order(filter_cfg: dict) -> list[dict]:
+    """Display order of topics ``[{name, title, emoji}, ...]`` from the config.
+
+    Empty when the filter is disabled / has no named topics; rendering then
+    falls back to the single ``Uncategorized`` catch-all.
+    """
+    order: list[dict] = []
+    for topic in (filter_cfg or {}).get("topics") or []:
+        if isinstance(topic, dict) and topic.get("name"):
+            order.append(
+                {
+                    "name": topic["name"],
+                    "title": topic.get("title") or topic["name"],
+                    "emoji": topic.get("emoji") or "",
+                }
+            )
+    return order
+
+
+def render_compact(items: list[dict], when: datetime, order: list[dict]) -> str:
     """A condensed digest for the README: one bullet per paper, no abstracts.
 
-    Empty sources are omitted to keep the section tight.
+    Empty topics are omitted to keep the section tight.
     """
     lines = [f"# Paper digest — {when.strftime('%Y-%m-%d')} · {len(items)} new", ""]
-    by_source: dict[str, list[dict]] = {}
-    for item in items:
-        by_source.setdefault(item["source"], []).append(item)
-    for source in order:
-        bucket = by_source.get(source, [])
+    for header, bucket in _sections(items, order):
         if not bucket:
             continue
-        lines.append(f"## {source} ({len(bucket)})")
+        lines.append(f"## {header} ({len(bucket)})")
         for item in bucket:
-            title = item["title"] or "(untitled)"
-            head = f"[{title}]({item['link']})" if item["link"] else title
-            authors = _short_authors(item.get("authors", ""))
-            lines.append(f"- {head}" + (f" — *{authors}*" if authors else ""))
+            lines.append(_entry_line(item))
         lines.append("")
     if len(lines) <= 2:
         lines.append("_No new entries._")
@@ -372,7 +491,30 @@ def update_readme(md_body: str) -> bool:
     return True
 
 
-def render_html(items: list[dict], when: datetime, order: list[str]) -> str:
+def _badges_html(item: dict) -> str:
+    """HTML shields for an item (mirrors :func:`_badges`)."""
+    parts: list[str] = []
+    aid = _arxiv_id(item.get("link", ""))
+    if aid:
+        parts.append(
+            f'<a href="https://arxiv.org/abs/{escape(aid)}">'
+            f'<img src="https://img.shields.io/badge/arXiv-{escape(aid)}-b31b1b.svg" alt="arXiv"></a>'
+        )
+    elif item.get("link"):
+        parts.append(
+            f'<a href="{escape(item["link"])}">'
+            '<img src="https://img.shields.io/badge/Paper-Link-blue" alt="Paper"></a>'
+        )
+    site = _website(item.get("summary", ""))
+    if site:
+        parts.append(
+            f'<a href="{escape(site)}">'
+            '<img src="https://img.shields.io/badge/Website-Link-blue" alt="Website"></a>'
+        )
+    return " ".join(parts)
+
+
+def render_html(items: list[dict], when: datetime, order: list[dict]) -> str:
     parts = [
         '<!doctype html><html><body style="font-family:-apple-system,Helvetica,Arial,sans-serif;'
         'max-width:760px;line-height:1.5;color:#222;">',
@@ -380,38 +522,31 @@ def render_html(items: list[dict], when: datetime, order: list[str]) -> str:
         f"<p>{len(items)} new papers, generated at "
         f"{escape(when.isoformat())}.</p>",
     ]
-    by_source: dict[str, list[dict]] = {}
-    for item in items:
-        by_source.setdefault(item["source"], []).append(item)
-    for source in order:
-        bucket = by_source.get(source, [])
+    for header, bucket in _sections(items, order):
         parts.append(
-            f"<h2>{escape(source)} <small>({len(bucket)})</small></h2>"
+            f"<h2>{escape(header)} <small>({len(bucket)})</small></h2>"
         )
         if not bucket:
             parts.append("<p><em>No new entries.</em></p>")
             continue
+        parts.append("<ul>")
         for item in bucket:
-            title = escape(item["title"] or "(untitled)")
-            link = item["link"]
-            if link:
-                parts.append(
-                    f'<h3><a href="{escape(link)}">{title}</a></h3>'
-                )
-            else:
-                parts.append(f"<h3>{title}</h3>")
-            if item["authors"]:
-                parts.append(
-                    f'<p style="margin:.2em 0"><em>'
-                    f'{escape(item["authors"])}</em></p>'
-                )
-            if item["published"]:
-                parts.append(
-                    f'<p style="margin:.2em 0;color:#666"><small>'
-                    f'{escape(item["published"])}</small></p>'
-                )
-            if item["summary"]:
-                parts.append(f'<p>{escape(item["summary"])}</p>')
+            title = escape(item.get("title") or "(untitled)")
+            model = _model_name(item.get("title") or "")
+            head = (
+                f"<strong>{escape(model)}</strong>, {title}."
+                if model
+                else f"<strong>{title}</strong>."
+            )
+            li = f"<li>{head}"
+            badges = _badges_html(item)
+            if badges:
+                li += f" {badges}"
+            authors = _short_authors(item.get("authors", ""))
+            if authors:
+                li += f" — <em>{escape(authors)}</em>"
+            parts.append(li + "</li>")
+        parts.append("</ul>")
     parts.append("</body></html>")
     return "\n".join(parts)
 
@@ -482,9 +617,9 @@ def main() -> int:
         arxiv_name = "arXiv " + ",".join(cats)
         sources.append((arxiv_name, build_arxiv_url(arxiv_cfg)))
 
-    source_order = [name for name, _ in sources]
     all_new: list[dict] = []
     filter_cfg = config.get("filter", {}) or {}
+    topic_order = _topic_order(filter_cfg)
 
     for name, url in sources:
         seen = state.get(name, [])
@@ -510,19 +645,19 @@ def main() -> int:
 
     DIGEST_DIR.mkdir(parents=True, exist_ok=True)
     digest_path = DIGEST_DIR / f"{now.strftime('%Y-%m-%d')}.md"
-    md_body = render_markdown(all_new, now, source_order)
+    md_body = render_markdown(all_new, now, topic_order)
     digest_path.write_text(md_body, encoding="utf-8")
     write_github_output("digest_path", str(digest_path.relative_to(ROOT)))
     print(f"[done] wrote {digest_path} ({new_count} new papers)")
 
-    if update_readme(render_compact(all_new, now, source_order)):
+    if update_readme(render_compact(all_new, now, topic_order)):
         print("[readme] refreshed Latest digest section")
 
     try:
         send_email(
             subject=f"[paper digest] {now.strftime('%Y-%m-%d')} — {new_count} new",
             text_body=md_body,
-            html_body=render_html(all_new, now, source_order),
+            html_body=render_html(all_new, now, topic_order),
         )
     except Exception as exc:  # noqa: BLE001
         # Email failure shouldn't fail the workflow — digest is already on disk.
