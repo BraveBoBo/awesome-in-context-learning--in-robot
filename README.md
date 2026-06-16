@@ -22,12 +22,16 @@ Actions; safe to re-run locally.
 
 ## Topics
 
-This instance tracks two topics, and keeps a paper that matches **either** one:
+This instance tracks three topics, and keeps a paper that matches **any** one.
+The digest is grouped by topic, in this order:
 
-- **VLA-memory / force-VLA** — Vision-Language-Action models that involve
-  memory or force/tactile feedback.
-- **In-context learning** — robot-learning papers on in-context /
+- 📚 **In-Context Learning** — robot-learning papers on in-context /
   in-context imitation learning.
+- ✋ **Force-VLA** — Vision-Language-Action models that involve force / tactile /
+  haptic feedback.
+- 🧠 **Memory-VLA** — Vision-Language-Action models that involve memory.
+
+A paper that fits more than one topic is listed under each.
 
 ## Sources
 
@@ -63,16 +67,29 @@ Configured in `config.json`. The filter uses **grouped substring matching**
   "enabled": true,
   "topics": [
     {
-      "name": "vla-memory-force",
+      "name": "in-context-learning",
+      "title": "In-Context Learning",
+      "emoji": "📚",
       "groups": [
-        ["vla", "vision-language-action", "vision language action"],
-        ["memory", "force", "tactile", "haptic"]
+        ["in-context learning", "in context learning", "in-context imitation"]
       ]
     },
     {
-      "name": "in-context-learning",
+      "name": "force-vla",
+      "title": "Force-VLA",
+      "emoji": "✋",
       "groups": [
-        ["in-context learning", "in context learning", "in-context imitation"]
+        ["vla", "vision-language-action", "vision language action"],
+        ["force", "tactile", "haptic"]
+      ]
+    },
+    {
+      "name": "memory-vla",
+      "title": "Memory-VLA",
+      "emoji": "🧠",
+      "groups": [
+        ["vla", "vision-language-action", "vision language action"],
+        ["memory"]
       ]
     }
   ]
@@ -83,9 +100,14 @@ Configured in `config.json`. The filter uses **grouped substring matching**
   topics → OR.**
 - A paper is kept if it satisfies **any** topic. A topic is satisfied when the
   paper matches **at least one term in every one of its groups** — e.g. a VLA
-  term **and** a memory/force term, *or* any in-context-learning term. The
-  per-topic AND is what keeps the journal feeds from flooding the digest with
-  every paper that merely says "force".
+  term **and** a force term (Force-VLA), or a VLA term **and** "memory"
+  (Memory-VLA), or any in-context-learning term. The per-topic AND is what keeps
+  the journal feeds from flooding the digest with every paper that merely says
+  "force".
+- Each topic's optional **`title`** and **`emoji`** are used as its digest
+  section header (e.g. `## 🧠 Memory-VLA`); they default to the topic `name`.
+  The declaration order of `topics` is the section order in the digest.
+- A paper matching multiple topics is listed under **each** of them.
 - Non-matching entries are **not** recorded in `state.json`, so if you later
   broaden a topic, previously-skipped papers resurface automatically.
 - A legacy single-topic `"groups": [...]` (without `topics`) is still accepted.
@@ -108,8 +130,9 @@ many results are fetched before the local filter runs.
   "filter": {
     "enabled": true,
     "topics": [
-      {"name": "vla-memory-force", "groups": [["vla", "..."], ["memory", "force", "..."]]},
-      {"name": "in-context-learning", "groups": [["in-context learning", "..."]]}
+      {"name": "in-context-learning", "title": "In-Context Learning", "emoji": "📚", "groups": [["in-context learning", "..."]]},
+      {"name": "force-vla", "title": "Force-VLA", "emoji": "✋", "groups": [["vla", "..."], ["force", "tactile", "..."]]},
+      {"name": "memory-vla", "title": "Memory-VLA", "emoji": "🧠", "groups": [["vla", "..."], ["memory"]]}
     ]
   }
 }
