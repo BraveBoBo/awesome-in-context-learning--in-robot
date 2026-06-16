@@ -407,7 +407,7 @@ def _sections(items: list[dict], order: list[dict]) -> list[tuple[str, list[dict
         for t in order
     ]
     if uncategorized:
-        out.append(("Other", uncategorized))
+        out.append(("📦 Other", uncategorized))
     return out
 
 
